@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Media Flow Tracker</title>
+    <meta
+      name="description"
+      content="A fully offline personal media tracker for movies, series, anime, manhwa, books, cartoons, and dramas."
+    />
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --panel-soft: #f1f5f9;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #4f46e5;
+        --primary-2: #6366f1;
+        --danger: #e11d48;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+      }
+
+      body.dark {
+        --bg: #020617;
+        --panel: #0f172a;
+        --panel-soft: #1e293b;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --border: #1e293b;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(79, 70, 229, 0.16), transparent 32rem),
+          radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 30rem),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        transition: background 0.25s ease, color 0.25s ease;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      .app-shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(18px);
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 0 14px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-badge {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--primary), #06b6d4);
+        color: white;
+        box-shadow: 0 14px 40px rgba(79, 70, 229, 0.35);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.25rem, 2vw, 1.8rem);
+        letter-spacing: -0.04em;
+      }
+
+      .brand p {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 0 14px;
+        font-size: 0.84rem;
+        font-weight: 750;
+        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+      }
+
+      .btn.primary {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: white;
+        box-shadow: 0 16px 38px rgba(79, 70, 229, 0.28);
+      }
+
+      .btn.danger {
+        border-color: rgba(225, 29, 72, 0.25);
+        color: var(--danger);
+      }
+
+      .nav-scroll {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 0 0 14px;
+        scrollbar-width: none;
+      }
+
+      .nav-scroll::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav-pill {
+        flex: 0 0 auto;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--muted);
+        padding: 9px 14px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        transition: all 0.18s ease;
+      }
+
+      .nav-pill.active {
+        border-color: transparent;
+        background: var(--text);
+        color: var(--bg);
+      }
+
+      .hero {
+        padding: 34px 0 18px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .hero-card,
+      .stat-card,
+      .media-card,
+      .modal-card,
+      .drawer {
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--panel) 94%, transparent);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 32px;
+        padding: clamp(24px, 4vw, 42px);
+      }
+
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        right: -7rem;
+        top: -7rem;
+        width: 18rem;
+        height: 18rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.28), rgba(6, 182, 212, 0.18));
+        filter: blur(2px);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+        color: var(--primary-2);
+        font-size: 0.74rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .hero h2 {
+        position: relative;
+        z-index: 1;
+        max-width: 790px;
+        margin: 0;
+        font-size: clamp(2.2rem, 7vw, 5rem);
+        line-height: 0.92;
+        letter-spacing: -0.075em;
+      }
+
+      .hero p.lead {
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      .hero-actions {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat-card {
+        border-radius: 24px;
+        padding: 18px;
+        box-shadow: none;
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        margin: 8px 0 0;
+        font-size: 2rem;
+        font-weight: 950;
+        letter-spacing: -0.06em;
+      }
+
+      .control-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 18px 0 22px;
+      }
+
+      .search-box {
+        position: relative;
+        flex: 1;
+        min-width: min(100%, 320px);
+      }
+
+      .search-box input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--text);
+        outline: none;
+        padding: 0 46px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+      }
+
+      .search-box span {
+        position: absolute;
+        left: 17px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+
+      .view-note {
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 30px 0 14px;
+      }
+
+      .section-title h3 {
+        margin: 0;
+        font-size: 1.35rem;
+        letter-spacing: -0.04em;
+      }
+
+      .section-title p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .media-card {
+        overflow: hidden;
+        border-radius: 26px;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .media-card:hover {
+        transform: translateY(-4px);
+        border-color: color-mix(in srgb, var(--primary) 44%, var(--border));
+        box-shadow: var(--shadow);
+      }
+
+      .cover-wrap {
+        position: relative;
+        height: 190px;
+        overflow: hidden;
+        background: var(--panel-soft);
+      }
+
+      .cover-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.45s ease;
+      }
+
+      .media-card:hover .cover-wrap img {
+        transform: scale(1.06);
+      }
+
+      .badge,
+      .rating-badge {
+        position: absolute;
+        top: 12px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: white;
+        font-size: 0.68rem;
+        font-weight: 950;
+        backdrop-filter: blur(12px);
+      }
+
+      .badge {
+        left: 12px;
+        background: rgba(15, 23, 42, 0.72);
+      }
+
+      .rating-badge {
+        right: 12px;
+        background: rgba(245, 158, 11, 0.94);
+      }
+
+      .card-body {
+        padding: 16px;
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 920;
+        letter-spacing: -0.04em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .description {
+        min-height: 44px;
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .genres {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin: 12px 0;
+      }
+
+      .genre {
+        border-radius: 999px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        padding: 4px 8px;
+        font-size: 0.65rem;
+        font-weight: 850;
+      }
+
+      .progress-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 850;
+      }
+
+      .progress-bar {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--panel-soft);
+        margin: 7px 0 12px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary), #06b6d4);
+      }
+
+      .card-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .small-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--panel-soft);
+        color: var(--text);
+        font-weight: 900;
+      }
+
+      .text-btn {
+        border: 0;
+        border-radius: 999px;
+        background: rgba(79, 70, 229, 0.12);
+        color: var(--primary-2);
+        padding: 9px 12px;
+        font-size: 0.72rem;
+        font-weight: 950;
+      }
+
+      .empty {
+        border: 1px dashed var(--border);
+        border-radius: 28px;
+        padding: 42px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.72);
+        backdrop-filter: blur(14px);
+      }
+
+      .overlay.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(760px, 100%);
+        max-height: 92vh;
+        overflow: auto;
+        border-radius: 32px;
+        padding: 22px;
+        background: var(--panel);
+      }
+
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: start;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 14px;
+      }
+
+      .modal-head h3 {
+        margin: 0;
+        font-size: 1.55rem;
+        letter-spacing: -0.06em;
+      }
+
+      .close-btn {
+        border: 0;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: var(--panel-soft);
+        color: var(--text);
+        font-weight: 950;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      .field label {
+        display: block;
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 950;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+        padding: 12px;
+      }
+
+      .field textarea {
+        min-height: 92px;
+        resize: vertical;
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .detail-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 20px;
+        padding-top: 16px;
+      }
+
+      .detail-layout img {
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+        border-radius: 22px;
+      }
+
+      .detail-meta {
+        display: grid;
+        gap: 10px;
+      }
+
+      .detail-box {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--bg);
+        padding: 12px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+
+      .toast {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 80;
+        display: none;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 16px;
+        background: #064e3b;
+        color: white;
+        padding: 12px 14px;
+        box-shadow: var(--shadow);
+        font-size: 0.85rem;
+        font-weight: 850;
+      }
+
+      .toast.show {
+        display: block;
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        margin-top: 56px;
+        padding: 28px 0;
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.82rem;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 680px) {
+        .topbar-inner,
+        .control-row,
+        .section-title {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .toolbar {
+          justify-content: flex-start;
+        }
+
+        .grid,
+        .form-grid,
+        .detail-layout,
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-layout img {
+          height: 250px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="app-shell">
+        <div class="topbar-inner">
+          <div class="brand">
+            <div class="brand-badge">🎞️</div>
+            <div>
+              <h1>Media Flow Tracker</h1>
+              <p>GitHub Pages standalone edition — no backend, no login.</p>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button class="btn" id="themeBtn" type="button">🌙 Theme</button>
+            <button class="btn" id="exportBtn" type="button">⬇️ Export</button>
+            <label class="btn" for="importFile">⬆️ Import</label>
+            <input id="importFile" type="file" accept="application/json,.json" hidden />
+            <button class="btn danger" id="resetBtn" type="button">↺ Reset</button>
+            <button class="btn primary" id="addBtn" type="button">＋ Add Media</button>
+          </div>
+        </div>
+        <nav class="nav-scroll" id="categoryNav"></nav>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="hero">
+        <div class="hero-grid">
+          <div class="hero-card">
+            <p class="eyebrow">⚡ Offline local database</p>
+            <h2>Track every story you watch, read, and love.</h2>
+            <p class="lead">
+              This root <strong>index.html</strong> file works directly on GitHub Pages. It stores your collection in
+              browser localStorage and supports movies, series, dramas, manhwa, anime, books, and cartoons.
+            </p>
+            <div class="hero-actions">
+              <button class="btn primary" id="heroAddBtn" type="button">Create first card</button>
+              <button class="btn" id="heroSampleBtn" type="button">Load sample library</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Total Cards</div>
+              <div class="stat-value" id="totalStat">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Completed</div>
+              <div class="stat-value" id="completeStat">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Average Rating</div>
+              <div class="stat-value" id="ratingStat">0.0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active Tab</div>
+              <div class="stat-value" id="activeStat">All</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-row">
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Search title, genre, description, or category..." />
+        </div>
+        <div class="view-note" id="resultNote">Showing your library</div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <div>
+            <h3 id="sectionHeading">Your Media Library</h3>
+            <p>Click a card for full details. Use + / - to update progress instantly.</p>
+          </div>
+        </div>
+        <div class="grid" id="mediaGrid"></div>
+        <div class="empty" id="emptyState" hidden>
+          <h3>No media found</h3>
+          <p>Try a different search/category or add a new card.</p>
+          <button class="btn primary" type="button" onclick="openForm()">＋ Add Media</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="app-shell">
+        <strong>Media Flow Tracker</strong><br />
+        Static HTML, CSS, and JavaScript. Ready for GitHub Pages root deployment.
+      </div>
+    </footer>
+
+    <div class="overlay" id="formOverlay" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" style="margin-bottom: 6px">Local card editor</p>
+            <h3 id="formTitle">Add Media</h3>
+          </div>
+          <button class="close-btn" type="button" onclick="closeForm()">×</button>
+        </div>
+        <form id="mediaForm">
+          <input id="editId" type="hidden" />
+          <div class="form-grid">
+            <div class="field full">
+              <label for="titleInput">Title</label>
+              <input id="titleInput" required placeholder="e.g. Solo Leveling" />
+            </div>
+            <div class="field">
+              <label for="categoryInput">Category</label>
+              <select id="categoryInput">
+                <option value="movie">Movie</option>
+                <option value="series">Series</option>
+                <option value="drama">Drama</option>
+                <option value="manhwa">Manhwa</option>
+                <option value="anime">Anime</option>
+                <option value="book">Book</option>
+                <option value="cartoon">Cartoon</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ratingInput">Rating / 10</label>
+              <input id="ratingInput" type="number" min="0" max="10" step="0.1" value="8" />
+            </div>
+            <div class="field full">
+              <label for="coverInput">Cover Image URL</label>
+              <input id="coverInput" type="url" placeholder="https://..." />
+            </div>
+            <div class="field full">
+              <label for="descriptionInput">Description</label>
+              <textarea id="descriptionInput" placeholder="Write a short synopsis or personal note..."></textarea>
+            </div>
+            <div class="field full">
+              <label for="genresInput">Genres</label>
+              <input id="genresInput" placeholder="Action, Fantasy, Drama" />
+            </div>
+            <div class="field">
+              <label for="currentInput">Current Progress</label>
+              <input id="currentInput" type="number" min="0" value="0" />
+            </div>
+            <div class="field">
+              <label for="totalInput">Total Target</label>
+              <input id="totalInput" type="number" min="1" value="100" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn danger" id="deleteBtn" type="button" hidden>🗑️ Delete</button>
+            <button class="btn primary" type="submit">Save Card</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="overlay" id="detailOverlay" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" style="margin-bottom: 6px">Full details</p>
+            <h3 id="detailTitle">Title</h3>
+          </div>
+          <button class="close-btn" type="button" onclick="closeDetails()">×</button>
+        </div>
+        <div class="detail-layout">
+          <img id="detailCover" alt="Media cover" />
+          <div class="detail-meta">
+            <div class="detail-box" id="detailProgress"></div>
+            <div class="detail-box" id="detailRating"></div>
+            <div class="detail-box" id="detailGenres"></div>
+            <div class="detail-box" id="detailDescription"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button class="btn primary" id="detailEditBtn" type="button">Edit</button>
+              <button class="btn" type="button" onclick="closeDetails()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">Saved</div>
+
+    <script>
+      const STORAGE_KEY = "media_flow_standalone_items_v1";
+      const THEME_KEY = "media_flow_standalone_theme_v1";
+
+      const categories = [
+        ["overall", "Overall"],
+        ["movie", "Movies"],
+        ["series", "Series"],
+        ["drama", "Dramas"],
+        ["manhwa", "Manhwa"],
+        ["anime", "Anime"],
+        ["book", "Books"],
+        ["cartoon", "Cartoons"],
+      ];
+
+      const fallbackCover =
+        "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=900&q=80";
+
+      const sampleItems = [
+        {
+          id: "sample-1",
+          title: "Solo Leveling",
+          category: "manhwa",
+          cover:
+            "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=900&q=80",
+          description:
+            "A weak hunter gains access to a mysterious system that lets him grow stronger after every battle.",
+          genres: ["Action", "Fantasy", "Adventure"],
+          rating: 9.2,
+          current: 150,
+          total: 179,
+          updatedAt: new Date(Date.now() - 3600 * 1000).toISOString(),
+        },
+        {
+          id: "sample-2",
+          title: "Interstellar",
+          category: "movie",
+          cover:
+            "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80",
+          description:
+            "Explorers travel through a wormhole to search for humanity's future among the stars.",
+          genres: ["Sci-Fi", "Drama", "Space"],
+          rating: 9.5,
+          current: 85,
+          total: 100,
+          updatedAt: new Date(Date.now() - 7200 * 1000).toISOString(),
+        },
+        {
+          id: "sample-3",
+          title: "Frieren: Beyond Journey's End",
+          category: "anime",
+          cover:
+            "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=900&q=80",
+          description:
+            "An elf mage looks back on friendship, mortality, and the meaning of journeys after victory.",
+          genres: ["Fantasy", "Adventure", "Slice of Life"],
+          rating: 9.7,
+          current: 16,
+          total: 28,
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "sample-4",
+          title: "Atomic Habits",
+          category: "book",
+          cover:
+            "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=900&q=80",
+          description:
+            "A practical guide to building better habits through tiny, repeatable improvements.",
+          genres: ["Self-Help", "Productivity", "Non-Fiction"],
+          rating: 8.8,
+          current: 215,
+          total: 320,
+          updatedAt: new Date(Date.now() - 86400000).toISOString(),
+        },
+      ];
+
+      let items = [];
+      let activeCategory = "overall";
+      let searchTerm = "";
+      let selectedDetailId = null;
+
+      const $ = (id) => document.getElementById(id);
+
+      function safeParse(value, fallback) {
+        try {
+          return value ? JSON.parse(value) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function saveItems() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      }
+
+      function showToast(message) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2500);
+      }
+
+      function progressPercent(item) {
+        if (!item.total) return 0;
+        return Math.max(0, Math.min(100, Math.round((Number(item.current || 0) / Number(item.total || 1)) * 100)));
+      }
+
+      function progressLabel(item) {
+        const labelMap = {
+          movie: "Watch",
+          series: "Episode",
+          drama: "Episode",
+          anime: "Episode",
+          cartoon: "Episode",
+          manhwa: "Chapter",
+          book: "Page",
+        };
+        const label = labelMap[item.category] || "Progress";
+        return `${label} ${item.current || 0} / ${item.total || 0}`;
+      }
+
+      function visibleItems() {
+        return items
+          .filter((item) => activeCategory === "overall" || item.category === activeCategory)
+          .filter((item) => {
+            if (!searchTerm) return true;
+            const haystack = `${item.title} ${item.category} ${item.description} ${(item.genres || []).join(" ")}`.toLowerCase();
+            return haystack.includes(searchTerm.toLowerCase());
+          })
+          .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+      }
+
+      function renderNav() {
+        const nav = $("categoryNav");
+        nav.innerHTML = categories
+          .map(([value, label]) => {
+            const count = value === "overall" ? items.length : items.filter((item) => item.category === value).length;
+            return `<button class="nav-pill ${activeCategory === value ? "active" : ""}" onclick="setCategory('${value}')">${label} · ${count}</button>`;
+          })
+          .join("");
+      }
+
+      function renderStats(list) {
+        const completed = items.filter((item) => progressPercent(item) >= 100).length;
+        const rating = items.length
+          ? (items.reduce((sum, item) => sum + Number(item.rating || 0), 0) / items.length).toFixed(1)
+          : "0.0";
+        $("totalStat").textContent = items.length;
+        $("completeStat").textContent = completed;
+        $("ratingStat").textContent = rating;
+        $("activeStat").textContent = categories.find(([value]) => value === activeCategory)?.[1] || "All";
+        $("resultNote").textContent = `Showing ${list.length} result${list.length === 1 ? "" : "s"}`;
+        $("sectionHeading").textContent = activeCategory === "overall" ? "Your Media Library" : `${$("activeStat").textContent} Library`;
+      }
+
+      function renderCards() {
+        const list = visibleItems();
+        const grid = $("mediaGrid");
+        const empty = $("emptyState");
+        renderNav();
+        renderStats(list);
+        empty.hidden = list.length > 0;
+        grid.innerHTML = list
+          .map((item) => {
+            const percent = progressPercent(item);
+            const genreHtml = (item.genres || [])
+              .slice(0, 3)
+              .map((genre) => `<span class="genre">#${escapeHtml(genre)}</span>`)
+              .join("");
+            return `
+              <article class="media-card">
+                <div class="cover-wrap" onclick="openDetails('${item.id}')">
+                  <img src="${escapeAttr(item.cover || fallbackCover)}" alt="${escapeAttr(item.title)}" onerror="this.src='${fallbackCover}'" />
+                  <span class="badge">${escapeHtml(item.category)}</span>
+                  <span class="rating-badge">⭐ ${Number(item.rating || 0).toFixed(1)}</span>
+                </div>
+                <div class="card-body">
+                  <h4 class="card-title" title="${escapeAttr(item.title)}">${escapeHtml(item.title)}</h4>
+                  <p class="description">${escapeHtml(item.description || "No description yet.")}</p>
+                  <div class="genres">${genreHtml}</div>
+                  <div class="progress-line">
+                    <span>${escapeHtml(progressLabel(item))}</span>
+                    <span>${percent}%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                  <div class="card-actions">
+                    <div class="small-actions">
+                      <button class="icon-btn" type="button" onclick="adjustProgress('${item.id}', -1)">−</button>
+                      <button class="icon-btn" type="button" onclick="adjustProgress('${item.id}', 1)">+</button>
+                    </div>
+                    <button class="text-btn" type="button" onclick="openForm('${item.id}')">Edit</button>
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function escapeHtml(text) {
+        return String(text || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function escapeAttr(text) {
+        return escapeHtml(text).replaceAll("`", "&#096;");
+      }
+
+      function setCategory(category) {
+        activeCategory = category;
+        renderCards();
+      }
+
+      function adjustProgress(id, delta) {
+        items = items.map((item) => {
+          if (item.id !== id) return item;
+          const nextCurrent = Math.max(0, Math.min(Number(item.total || 1), Number(item.current || 0) + delta));
+          return { ...item, current: nextCurrent, updatedAt: new Date().toISOString() };
+        });
+        saveItems();
+        renderCards();
+      }
+
+      function openForm(id = null) {
+        const item = id ? items.find((entry) => entry.id === id) : null;
+        $("editId").value = item?.id || "";
+        $("formTitle").textContent = item ? "Edit Media" : "Add Media";
+        $("titleInput").value = item?.title || "";
+        $("categoryInput").value = item?.category || "anime";
+        $("ratingInput").value = item?.rating || 8;
+        $("coverInput").value = item?.cover || "";
+        $("descriptionInput").value = item?.description || "";
+        $("genresInput").value = (item?.genres || []).join(", ");
+        $("currentInput").value = item?.current ?? 0;
+        $("totalInput").value = item?.total ?? 100;
+        $("deleteBtn").hidden = !item;
+        $("formOverlay").classList.add("open");
+        $("formOverlay").setAttribute("aria-hidden", "false");
+      }
+
+      function closeForm() {
+        $("formOverlay").classList.remove("open");
+        $("formOverlay").setAttribute("aria-hidden", "true");
+        $("mediaForm").reset();
+        $("editId").value = "";
+      }
+
+      function openDetails(id) {
+        const item = items.find((entry) => entry.id === id);
+        if (!item) return;
+        selectedDetailId = id;
+        $("detailTitle").textContent = item.title;
+        $("detailCover").src = item.cover || fallbackCover;
+        $("detailProgress").innerHTML = `<strong>Progress:</strong> ${escapeHtml(progressLabel(item))} · ${progressPercent(item)}% complete`;
+        $("detailRating").innerHTML = `<strong>Rating:</strong> ⭐ ${Number(item.rating || 0).toFixed(1)} / 10 · <strong>Category:</strong> ${escapeHtml(item.category)}`;
+        $("detailGenres").innerHTML = `<strong>Genres:</strong> ${escapeHtml((item.genres || []).join(", ") || "None")}`;
+        $("detailDescription").innerHTML = `<strong>Description:</strong><br>${escapeHtml(item.description || "No description yet.")}`;
+        $("detailOverlay").classList.add("open");
+        $("detailOverlay").setAttribute("aria-hidden", "false");
+      }
+
+      function closeDetails() {
+        selectedDetailId = null;
+        $("detailOverlay").classList.remove("open");
+        $("detailOverlay").setAttribute("aria-hidden", "true");
+      }
+
+      function loadSamples(force = false) {
+        if (!force && items.length) return;
+        items = structuredClone(sampleItems);
+        saveItems();
+        renderCards();
+        showToast("Sample library loaded");
+      }
+
+      $("mediaForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const id = $("editId").value || `media-${Date.now()}`;
+        const item = {
+          id,
+          title: $("titleInput").value.trim(),
+          category: $("categoryInput").value,
+          rating: Number($("ratingInput").value || 0),
+          cover: $("coverInput").value.trim() || fallbackCover,
+          description: $("descriptionInput").value.trim() || "No description yet.",
+          genres: $("genresInput")
+            .value.split(",")
+            .map((genre) => genre.trim())
+            .filter(Boolean),
+          current: Math.max(0, Number($("currentInput").value || 0)),
+          total: Math.max(1, Number($("totalInput").value || 1)),
+          updatedAt: new Date().toISOString(),
+        };
+
+        if ($("editId").value) {
+          items = items.map((entry) => (entry.id === id ? item : entry));
+        } else {
+          items = [item, ...items];
+        }
+
+        saveItems();
+        closeForm();
+        renderCards();
+        showToast("Card saved successfully");
+      });
+
+      $("deleteBtn").addEventListener("click", () => {
+        const id = $("editId").value;
+        if (!id) return;
+        if (!confirm("Delete this media card?")) return;
+        items = items.filter((entry) => entry.id !== id);
+        saveItems();
+        closeForm();
+        renderCards();
+        showToast("Card deleted");
+      });
+
+      $("detailEditBtn").addEventListener("click", () => {
+        const id = selectedDetailId;
+        closeDetails();
+        openForm(id);
+      });
+
+      $("searchInput").addEventListener("input", (event) => {
+        searchTerm = event.target.value;
+        renderCards();
+      });
+
+      $("addBtn").addEventListener("click", () => openForm());
+      $("heroAddBtn").addEventListener("click", () => openForm());
+      $("heroSampleBtn").addEventListener("click", () => loadSamples(true));
+
+      $("themeBtn").addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        localStorage.setItem(THEME_KEY, document.body.classList.contains("dark") ? "dark" : "light");
+      });
+
+      $("resetBtn").addEventListener("click", () => {
+        if (!confirm("Reset your local library to sample data?")) return;
+        loadSamples(true);
+      });
+
+      $("exportBtn").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify({ items, exportedAt: new Date().toISOString() }, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `media-flow-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("Backup downloaded");
+      });
+
+      $("importFile").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const data = safeParse(reader.result, null);
+          if (!data || !Array.isArray(data.items)) {
+            alert("Invalid backup file.");
+            return;
+          }
+          items = data.items;
+          saveItems();
+          renderCards();
+          showToast("Backup imported");
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeForm();
+          closeDetails();
+        }
+      });
+
+      function init() {
+        if (localStorage.getItem(THEME_KEY) === "dark") {
+          document.body.classList.add("dark");
+        }
+        items = safeParse(localStorage.getItem(STORAGE_KEY), []);
+        if (!items.length) {
+          items = structuredClone(sampleItems);
+          saveItems();
+        }
+        renderCards();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
