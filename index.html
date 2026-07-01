@@ -348,6 +348,28 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     width:100%;
   }
 }
+
+@media screen and (max-width: 768px){
+
+  .grid{
+    grid-template-columns:repeat(2,1fr) !important;
+    gap:10px !important;
+  }
+
+  .cover-wrap{
+    height:130px !important;
+  }
+
+  .card-body{
+    padding:10px !important;
+  }
+
+  .card-title{
+    font-size:.85rem !important;
+  }
+
+}
+  
 </style>
 </head>
 <body>
@@ -380,7 +402,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
 <main class="app-shell">
   <section class="page-head">
     <h2 id="categoryHeading">Overall</h2>
-    <p class="lead">Your personal media collection. Each category tracks its own custom progress counters, sequels, and prequel graphs offline.</p>
+    <p class="lead">My personal media collection. Each category tracks its own custom progress counters, sequels, and prequel graphs offline.</p>
     <div class="search-box">
       <span>⌕</span>
       <input id="searchInput" type="text" placeholder="Search title, description, genres..." />
