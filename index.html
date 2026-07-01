@@ -427,6 +427,18 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   }
 
 }
+
+  .nav-search{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    padding-bottom:14px;
+}
+
+.nav-search .search-box{
+    width:300px;
+    max-width:100%;
+}
   
 </style>
 </head>
@@ -443,6 +455,10 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
           <h1>Hilary's Media Tracker</h1>
           <p>Offline Single-File Edition • Store: localStorage</p>
         </div>
+         <div class="search-box">
+      <span>⌕</span>
+      <input id="searchInput" type="text" placeholder="Search title, description, genres..." />
+    </div>
       </div>
       <div class="toolbar">
 <button class="btn cloud-push" id="cloudPushBtn" type="button" title="Push to Firebase Cloud">☁️ Push</button> 
@@ -461,10 +477,6 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   <section class="page-head">
     <h2 id="categoryHeading">Overall</h2>
     <p class="lead">My personal media collection. Each category tracks its own custom progress counters, sequels, and prequel graphs offline.</p>
-    <div class="search-box">
-      <span>⌕</span>
-      <input id="searchInput" type="text" placeholder="Search title, description, genres..." />
-    </div>
     <p class="status-text" id="statusText">System Log: Ready</p>
   </section>
 
