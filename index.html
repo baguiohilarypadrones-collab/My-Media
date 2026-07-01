@@ -16,6 +16,11 @@
     }
   </script>
 
+  <!-- Firebase App (compat CDN) for cloud sync – works on GitHub Pages -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
   <!-- Global Styles -->
   <style>
     /* Hide scrollbar for Chrome, Safari and Opera */
@@ -1252,6 +1257,393 @@
 
     // Bootstrap app
     init();
+  </script>
+
+  <!-- Firebase Cloud Sync Addon – makes cards accessible anywhere -->
+  <script>
+  // ================= FIREBASE CLOUD SYNC (GitHub Pages compatible) =================
+  // 1) Create a Firebase project: https://console.firebase.google.com
+  // 2) Enable Firestore + Anonymous Auth
+  // 3) Paste your config below, OR set window.MEDIA_FLOW_FIREBASE_CONFIG before this script loads.
+  // 4) Deploy index.html to GitHub Pages – cards will sync to Firestore cloud in real-time.
+  //
+  // If no Firebase config is provided, the app continues using localStorage (offline mode).
+  //
+  const FIREBASE_CONFIG = window.MEDIA_FLOW_FIREBASE_CONFIG || {
+    // --- REPLACE THESE WITH YOUR OWN FIREBASE WEB CONFIG ---
+    // apiKey: "AIzaSyXXXX...",
+    // authDomain: "your-project.firebaseapp.com",
+    // projectId: "your-project",
+    // storageBucket: "your-project.appspot.com",
+    // messagingSenderId: "123456789",
+    // appId: "1:123456789:web:abcdef"
+  };
+
+  const GITHUB_GIST_TOKEN_KEY = "media_flow_gist_token";
+  const GITHUB_GIST_ID_KEY = "media_flow_gist_id";
+
+  let fbApp = null;
+  let fbDb = null;
+  let fbAuth = null;
+  let cloudEnabled = false;
+  let cloudUnsub = null;
+
+  (async function initCloudSync(){
+    try {
+      if (!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) {
+        console.log("Media Flow: Firebase not configured – running in localStorage offline mode. Add your Firebase config to enable cloud sync.");
+        return;
+      }
+      if (typeof firebase === "undefined") {
+        console.warn("Firebase SDK not loaded");
+        return;
+      }
+      fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+      fbDb = firebase.firestore();
+      fbAuth = firebase.auth();
+      await fbAuth.signInAnonymously().catch(()=>{});
+      cloudEnabled = true;
+
+      // Show cloud badge
+      const badgeHost = document.querySelector("header .flex.items-center.gap-2");
+      if (badgeHost && !document.getElementById("cloudLiveBadge")) {
+        const span = document.createElement("span");
+        span.id = "cloudLiveBadge";
+        span.className = "ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600 border border-emerald-500/20";
+        span.innerHTML = '<span style="width:6px;height:6px;border-radius:9999px;background:#10b981;display:inline-block;animation:pulse 1.2s infinite"></span> Cloud Live';
+        badgeHost.appendChild(span);
+      }
+
+      // Real-time listener – global shared collection "media_items"
+      cloudUnsub = fbDb.collection("media_items").orderBy("updatedAt", "desc").limit(200)
+        .onSnapshot((snap) => {
+          const cloudItems = [];
+          snap.forEach(docSnap => {
+            const d = docSnap.data();
+            cloudItems.push({
+              _id: docSnap.id,
+              title: d.title,
+              category: d.category,
+              coverImage: d.coverImage,
+              description: d.description || "",
+              genres: d.genres || [],
+              rating: d.rating || 0,
+              recommended: d.recommended || false,
+              createdAt: d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toISOString() : new Date().toISOString(),
+              updatedAt: d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate().toISOString() : new Date().toISOString(),
+              progress: d.progress || {}
+            });
+          });
+          if (cloudItems.length > 0) {
+            // merge cloud items into local state
+            if (typeof allMedia !== "undefined") {
+              allMedia = cloudItems;
+              try { localStorage.setItem("media_flow_db_items_local", JSON.stringify(allMedia)); } catch(e){}
+              if (typeof render === "function") render();
+            }
+          }
+        }, err => {
+          console.warn("Firestore listener failed:", err);
+        });
+
+      console.log("✅ Media Flow: Firebase Cloud Sync ACTIVE – cards saved to Firestore and accessible anywhere.");
+    } catch (e) {
+      console.warn("Cloud sync init failed:", e);
+    }
+  })();
+
+  // ---- Monkey-patch core data functions to mirror to Firestore ----
+  (function patchCloudWriters(){
+    const wait = () => new Promise(r => {
+      const t = setInterval(()=> {
+        if (typeof handlePatchProgress === "function" && typeof handleFormSubmit === "function") { clearInterval(t); r(true); }
+      }, 120);
+      setTimeout(()=>{ clearInterval(t); r(false); }, 4000);
+    });
+
+    wait().then(ok => {
+      if (!ok) return;
+
+      // Wrap handlePatchProgress
+      const _origPatch = window.handlePatchProgress;
+      if (typeof _origPatch === "function") {
+        window.handlePatchProgress = function(id, updates) {
+          const ret = _origPatch.apply(this, arguments);
+          // Firestore mirror
+          if (cloudEnabled && fbDb) {
+            fbDb.collection("media_items").doc(id).update({
+              progress: firebase.firestore.FieldValue.delete ? undefined : updates, // fallback handled below
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(()=>{});
+            // smarter merge – read then update
+            fbDb.collection("media_items").doc(id).get().then(snap => {
+              if (snap.exists) {
+                const current = snap.data().progress || {};
+                return fbDb.collection("media_items").doc(id).update({
+                  progress: { ...current, ...updates },
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+            }).catch(()=>{});
+          }
+          // Also push to GitHub Gist if configured
+          tryPushGistBackup();
+          return ret;
+        };
+      }
+
+      // Wrap handleFormSubmit
+      const _origSave = window.handleFormSubmit;
+      if (typeof _origSave === "function") {
+        window.handleFormSubmit = async function(e) {
+          // Let original run first to update local state
+          const maybePromise = _origSave.apply(this, arguments);
+          if (maybePromise && maybePromise.then) { try { await maybePromise; } catch(_){} }
+
+          // Push full collection to Firestore (upsert)
+          if (cloudEnabled && fbDb && typeof allMedia !== "undefined") {
+            try {
+              const batch = fbDb.batch();
+              allMedia.slice(0, 50).forEach(item => {
+                const ref = fbDb.collection("media_items").doc(item._id);
+                batch.set(ref, {
+                  title: item.title,
+                  category: item.category,
+                  coverImage: item.coverImage,
+                  description: item.description || "",
+                  genres: item.genres || [],
+                  rating: item.rating || 0,
+                  recommended: item.recommended || false,
+                  progress: item.progress || {},
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  owner: "global"
+                }, { merge: true });
+              });
+              await batch.commit();
+            } catch(err) {
+              console.warn("Firestore batch save failed:", err);
+            }
+          }
+          tryPushGistBackup();
+          return maybePromise;
+        };
+      }
+
+      // expose cloud helpers globally
+      window.mediaFlowCloud = {
+        isEnabled: () => cloudEnabled,
+        pushNow: pushFullToCloud,
+        pullNow: pullFromCloud,
+        pushGist: pushToGist,
+        pullGist: pullFromGist
+      };
+    });
+  })();
+
+  // ---------- Firestore helpers ----------
+  async function pushFullToCloud() {
+    if (!cloudEnabled || !fbDb || typeof allMedia === "undefined") {
+      alert("Cloud sync is not configured. Add your Firebase config at the top of index.html (FIREBASE_CONFIG).");
+      return false;
+    }
+    try {
+      const batch = fbDb.batch();
+      allMedia.forEach(item => {
+        const ref = fbDb.collection("media_items").doc(item._id);
+        batch.set(ref, {
+          title: item.title,
+          category: item.category,
+          coverImage: item.coverImage,
+          description: item.description,
+          genres: item.genres,
+          rating: item.rating,
+          recommended: item.recommended,
+          progress: item.progress,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+      await batch.commit();
+      alert("✅ Synced " + allMedia.length + " cards to Firebase Cloud!");
+      return true;
+    } catch (e) {
+      alert("Cloud push failed: " + e.message);
+      return false;
+    }
+  }
+
+  async function pullFromCloud() {
+    if (!cloudEnabled || !fbDb) {
+      alert("Cloud sync is not configured.");
+      return;
+    }
+    try {
+      const snap = await fbDb.collection("media_items").orderBy("updatedAt", "desc").limit(200).get();
+      const items = [];
+      snap.forEach(d => {
+        const v = d.data();
+        items.push({
+          _id: d.id,
+          title: v.title,
+          category: v.category,
+          coverImage: v.coverImage,
+          description: v.description,
+          genres: v.genres || [],
+          rating: v.rating || 0,
+          recommended: v.recommended || false,
+          createdAt: v.createdAt?.toDate ? v.createdAt.toDate().toISOString() : new Date().toISOString(),
+          updatedAt: v.updatedAt?.toDate ? v.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          progress: v.progress || {}
+        });
+      });
+      if (items.length) {
+        allMedia = items;
+        localStorage.setItem("media_flow_db_items_local", JSON.stringify(allMedia));
+        if (typeof render === "function") render();
+        alert("☁️ Pulled " + items.length + " cards from Firebase Cloud!");
+      } else {
+        alert("Cloud database is empty – push your local cards first.");
+      }
+    } catch (e) {
+      alert("Cloud pull failed: " + e.message);
+    }
+  }
+
+  // ---------- GitHub Gist backup (works 100% client-side, great for GitHub Pages) ----------
+  async function pushToGist() {
+    const token = prompt("Enter a GitHub Personal Access Token (gist scope) to save your cards to a private Gist.\nCreate one at: https://github.com/settings/tokens\n\nLeave blank to cancel:");
+    if (!token) return;
+    localStorage.setItem(GITHUB_GIST_TOKEN_KEY, token);
+
+    const payload = {
+      description: "Media Flow DB backup – " + new Date().toISOString(),
+      public: false,
+      files: {
+        "media-flow-backup.json": {
+          content: JSON.stringify({ 
+            items: typeof allMedia !== "undefined" ? allMedia : [],
+            links: typeof links !== "undefined" ? links : {},
+            exportedAt: new Date().toISOString(),
+            source: "media-flow-db-github-pages"
+          }, null, 2)
+        }
+      }
+    };
+
+    try {
+      const existingId = localStorage.getItem(GITHUB_GIST_ID_KEY);
+      const url = existingId 
+        ? `https://api.github.com/gists/${existingId}`
+        : "https://api.github.com/gists";
+      const method = existingId ? "PATCH" : "POST";
+      
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Authorization": "token " + token,
+          "Content-Type": "application/json",
+          "Accept": "application/vnd.github.v3+json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      localStorage.setItem(GITHUB_GIST_ID_KEY, data.id);
+      alert("✅ Saved to GitHub Gist!\n\nGist ID: " + data.id + "\nURL: " + data.html_url + "\n\nYou can restore this from any device.");
+    } catch (e) {
+      alert("Gist save failed: " + e.message + "\n\nMake sure your token has 'gist' scope.");
+    }
+  }
+
+  async function pullFromGist() {
+    const gistId = prompt("Enter Gist ID to restore from:", localStorage.getItem(GITHUB_GIST_ID_KEY) || "");
+    if (!gistId) return;
+    try {
+      const token = localStorage.getItem(GITHUB_GIST_TOKEN_KEY);
+      const headers = token ? { "Authorization": "token " + token } : {};
+      const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+      if (!res.ok) throw new Error("Gist not found or private");
+      const data = await res.json();
+      const file = data.files["media-flow-backup.json"] || Object.values(data.files)[0];
+      if (!file) throw new Error("No backup file found in Gist");
+      const backup = JSON.parse(file.content);
+      if (backup.items && Array.isArray(backup.items)) {
+        if (typeof allMedia !== "undefined") {
+          allMedia = backup.items;
+          localStorage.setItem("media_flow_db_items_local", JSON.stringify(allMedia));
+          if (backup.links && typeof links !== "undefined") {
+            links = backup.links;
+            localStorage.setItem("media_flow_db_links_local", JSON.stringify(links));
+          }
+          if (typeof render === "function") render();
+          alert("☁️ Restored " + backup.items.length + " cards from GitHub Gist!");
+          localStorage.setItem(GITHUB_GIST_ID_KEY, gistId);
+        }
+      } else {
+        throw new Error("Invalid backup format");
+      }
+    } catch (e) {
+      alert("Gist restore failed: " + e.message);
+    }
+  }
+
+  function tryPushGistBackup() {
+    // silent auto-backup if token exists – throttled to once per 2 minutes
+    const token = localStorage.getItem(GITHUB_GIST_TOKEN_KEY);
+    const lastKey = "media_flow_gist_last_push";
+    const last = Number(localStorage.getItem(lastKey) || 0);
+    if (!token || Date.now() - last < 120000) return;
+    localStorage.setItem(lastKey, String(Date.now()));
+    // fire and forget
+    const gistId = localStorage.getItem(GITHUB_GIST_ID_KEY);
+    if (!gistId) return;
+    fetch(`https://api.github.com/gists/${gistId}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": "token " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        files: {
+          "media-flow-backup.json": {
+            content: JSON.stringify({ 
+              items: allMedia, 
+              links: links, 
+              exportedAt: new Date().toISOString(),
+              auto: true
+            }, null, 2)
+          }
+        }
+      })
+    }).catch(()=>{});
+  }
+
+  // Add Cloud Sync buttons to the UI after page renders
+  setInterval(() => {
+    const toolbar = document.querySelector("header .flex.flex-wrap.items-center.justify-end");
+    if (toolbar && !document.getElementById("cloudSyncToolbarInject")) {
+      const wrap = document.createElement("div");
+      wrap.id = "cloudSyncToolbarInject";
+      wrap.className = "flex items-center gap-1";
+      wrap.innerHTML = `
+        <button onclick="pushFullToCloud()" title="Push all cards to Firebase Cloud" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #bae6fd;background:#f0f9ff;padding:6px 10px;font-size:11px;font-weight:700;color:#0369a1;cursor:pointer">
+          ☁️ Push
+        </button>
+        <button onclick="pullFromCloud()" title="Pull cards from Firebase Cloud" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #bbf7d0;background:#f0fdf4;padding:6px 10px;font-size:11px;font-weight:700;color:#15803d;cursor:pointer">
+          ⬇️ Pull
+        </button>
+        <button onclick="pushToGist()" title="Backup to GitHub Gist (works on GitHub Pages!)" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #e2e8f0;background:white;padding:6px 10px;font-size:10px;font-weight:700;color:#334155;cursor:pointer">
+          Gist ⬆️
+        </button>
+        <button onclick="pullFromGist()" title="Restore from GitHub Gist" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #e2e8f0;background:white;padding:6px 10px;font-size:10px;font-weight:700;color:#334155;cursor:pointer">
+          Gist ⬇️
+        </button>
+      `;
+      toolbar.insertBefore(wrap, toolbar.firstChild);
+    }
+  }, 900);
+
+  // ================= END FIREBASE CLOUD SYNC =================
   </script>
 </body>
 </html>
