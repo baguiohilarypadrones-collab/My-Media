@@ -77,6 +77,25 @@
       cursor: pointer;
     }
 
+  .detail-image{
+  width:100%;
+  height:320px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:var(--panel-soft);
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.detail-image img{
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
+
   
   :root{
     --bg:#f8fafc; --panel:#ffffff; --panel-soft:#f1f5f9; --text:#0f172a; --muted:#64748b;
@@ -161,6 +180,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   .media-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--primary) 44%,var(--border));box-shadow:var(--shadow);}
   .cover-wrap{position:relative;height:190px;overflow:hidden;background:var(--panel-soft);}
   .cover-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .45s ease;}
+  
   .media-card:hover .cover-wrap img{transform:scale(1.06);}
   .badge,.rating-badge{position:absolute;top:12px;border-radius:999px;padding:6px 10px;color:#fff;
     font-size:.65rem;font-weight:900;backdrop-filter:blur(12px);letter-spacing:.04em;text-transform:uppercase;}
@@ -556,10 +576,6 @@ function renderMediaCard(item){
       <p class="totals-text">${escapeHtml(totalsSummary(item))}</p>
       ${renderProgressControls(item)}
       <div class="card-actions">
-        <div class="small-actions">
-          <button class="icon-btn" type="button" onclick="handleEdit('${item._id}')" title="Edit">✎</button>
-          <button class="icon-btn danger" type="button" onclick="deleteCard('${item._id}')" title="Delete">✕</button>
-        </div>
         <button class="text-btn" type="button" onclick="handleShow('${item._id}')">Show All</button>
       </div>
     </div>
@@ -669,10 +685,14 @@ function renderModalContent(){
   qs("modalContent").innerHTML = `
     <div class="modal-head">
       <div><p class="eyebrow">Full details</p><h3>${escapeHtml(item.title)}</h3></div>
-      <button class="close-btn" type="button" onclick="handleCloseDetails()">×</button>
+      <button class="close-btn" type="button" onclick="handleCloseDetails()">✕</button>
     </div>
     <div class="detail-layout">
-      <img src="${escapeAttr(item.coverImage)}" alt="${escapeAttr(item.title)}" onerror="this.src='${fallbackCover}'" />
+      <div class="detail-image">
+  <img src="${escapeAttr(item.coverImage)}"
+       alt="${escapeAttr(item.title)}"
+       onerror="this.src='${fallbackCover}'" />
+</div>
       <div class="detail-meta">
         <div class="detail-box"><strong>Progress:</strong> ${escapeHtml(formatProgress(item))}</div>
         <div class="detail-box"><strong>Totals:</strong> ${escapeHtml(totalsSummary(item))}</div>
@@ -692,7 +712,7 @@ function renderModalContent(){
           ${sequels.length ? `<div class="linked-group"><span class="linked-label">Sequels (${sequels.length})</span>${sequels.map(renderLinkedRow).join("")}</div>` : ""}
         </div>` : ""}
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <button class="btn" type="button" onclick="handleCloseDetails(); setTimeout(()=>handleEdit('${item._id}'),100)">✎ Edit</button>
+          <button class="btn" type="button" onclick="handleCloseDetails(); setTimeout(()=>handleEdit('${item._id}'),100)">✎</button>
           <button class="btn" type="button" onclick="handleCloseDetails()">Close</button>
         </div>
       </div>
@@ -752,7 +772,7 @@ function buildDrawer(){
       <div><p class="eyebrow">Local card editor</p><h3>${editingId?"Edit Media":"Add Card"}</h3></div>
       <div class="modal-head-actions">
         ${editingId ? `<button type="button" class="btn danger" onclick="deleteCard('${editingId}')">Delete</button>` : ""}
-        <button type="button" class="close-btn" onclick="closeDrawer()">×</button>
+        <button type="button" class="close-btn" onclick="closeDrawer()">✕</button>
       </div>
     </div>
     <form id="mediaForm" class="drawer-form">
