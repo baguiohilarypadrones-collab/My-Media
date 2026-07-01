@@ -276,11 +276,78 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     .detail-layout{grid-template-columns:1fr;}
     .detail-layout>img{height:220px;}
   }
-  @media (max-width:640px){
-    .grid{grid-template-columns:1fr;}
-    .toolbar{justify-content:flex-start;width:100%;}
-    #drawerOverlay .drawer{width:100%;}
+@media (max-width:640px){
+
+  /* Two smaller cards per row */
+  .grid{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
   }
+
+  .media-card{
+    border-radius:18px;
+  }
+
+  .cover-wrap{
+    height:140px;
+  }
+
+  .card-body{
+    padding:10px;
+  }
+
+  .card-title{
+    font-size:.85rem;
+  }
+
+  .description{
+    display:none; /* saves a lot of space */
+  }
+
+  .genres{
+    margin:8px 0;
+    gap:4px;
+  }
+
+  .genre{
+    font-size:.55rem;
+    padding:3px 6px;
+  }
+
+  .progress-line,
+  .totals-text{
+    font-size:.62rem;
+  }
+
+  .progress-controls{
+    gap:6px;
+  }
+
+  .progress-btn{
+    width:24px;
+    height:24px;
+  }
+
+  .progress-value{
+    min-width:42px;
+    font-size:.65rem;
+  }
+
+  .text-btn{
+    width:100%;
+    padding:8px;
+    font-size:.68rem;
+  }
+
+  .toolbar{
+    justify-content:flex-start;
+    width:100%;
+  }
+
+  #drawerOverlay .drawer{
+    width:100%;
+  }
+}
 </style>
 </head>
 <body>
