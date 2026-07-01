@@ -528,9 +528,11 @@ function renderResults(){
       ${renderCarouselSection("Random", sections.random, "carousel-random")}
     </div>`;
   } else {
-    container.innerHTML = filtered.length===0
-      ? `<div class="empty"><h3>No matching media</h3><p>Try a different search/category or add a new card.</p></div>`
-      : `<div class="grid">${filtered.map(renderMediaCard).join("")}</div>`;
+    const sorted = [...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+container.innerHTML = sorted.length === 0
+  ? `<div class="empty"><h3>No matching media</h3><p>Try a different search/category or add a new card.</p></div>`
+  : `<div class="grid">${sorted.map(renderMediaCard).join("")}</div>`;
   }
 }
 
