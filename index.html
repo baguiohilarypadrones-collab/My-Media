@@ -176,12 +176,12 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   .empty-inline{color:var(--muted);font-size:.85rem;padding:6px 2px;}
 
   /* Grid */
- .grid{
+.grid{
     display:grid;
-    grid-template-columns:repeat(4,240px);
+    grid-template-columns:repeat(5, minmax(260px, 260px));
     justify-content:center;
     gap:18px;
-    margin-top:22px;
+    overflow-x:auto;
 }
 
   /* Media card */
@@ -439,6 +439,19 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     width:300px;
     max-width:100%;
 }
+
+.top-search{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin-top:12px;
+}
+
+.top-search .search-box{
+    width:100%;
+    max-width:700px;
+}
+
   
 </style>
 </head>
@@ -456,9 +469,15 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
           <p>Offline Single-File Edition • Store: localStorage</p>
         </div>
       </div>
-      <div class="search-box">
-      <span>⌕</span>
-      <input id="searchInput" type="text" placeholder="Search title, description, genres..." />
+     <div class="top-search">
+        <div class="search-box">
+            <span>⌕</span>
+            <input
+                id="searchInput"
+                type="text"
+                placeholder="Search title, description, genres..."
+            >
+        </div>
     </div>
       <div class="toolbar">
 <button class="btn cloud-push" id="cloudPushBtn" type="button" title="Push to Firebase Cloud">☁️ Push</button> 
