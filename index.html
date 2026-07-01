@@ -282,11 +282,30 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   .linked-info p{margin:0;font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .linked-info span{font-size:.7rem;color:var(--muted);}
 
-  @media (max-width:980px){
-    .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .detail-layout{grid-template-columns:1fr;}
-    .detail-layout>img{height:220px;}
-  }
+@media (max-width:1200px){
+    .grid{
+        grid-template-columns:repeat(4,240px);
+    }
+}
+
+@media (max-width:980px){
+    .grid{
+        grid-template-columns:repeat(3,240px);
+    }
+}
+
+@media (max-width:760px){
+    .grid{
+        grid-template-columns:repeat(2,240px);
+    }
+}
+
+@media (max-width:520px){
+    .grid{
+        grid-template-columns:repeat(1,240px);
+    }
+}
+  
 @media (max-width:640px){
 
   /* Two smaller cards per row */
