@@ -494,6 +494,10 @@ function init(){
   qs("viewToggleBtn").addEventListener("click", toggleViewMode);
   qs("darkToggleBtn").addEventListener("click", toggleDarkMode);
   qs("addCardBtn").addEventListener("click", triggerAddOpen);
+  qs("cloudPushBtn")?.addEventListener("click", pushFullToCloud);
+qs("cloudPullBtn")?.addEventListener("click", pullFromCloud);
+qs("gistPushBtn")?.addEventListener("click", pushToGist);
+qs("gistPullBtn")?.addEventListener("click", pullFromGist);
   qs("drawerOverlay").addEventListener("click", (e)=>{ if(e.target.id==="drawerOverlay") closeDrawer(); });
   qs("modalOverlay").addEventListener("click", (e)=>{ if(e.target.id==="modalOverlay") handleCloseDetails(); });
   window.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ closeDrawer(); handleCloseDetails(); } });
@@ -1415,29 +1419,7 @@ init();
   }
 
   // Add Cloud Sync buttons to the UI after page renders
-  setInterval(() => {
-    const toolbar = document.querySelector("header .flex.flex-wrap.items-center.justify-end");
-    if (toolbar && !document.getElementById("cloudSyncToolbarInject")) {
-      const wrap = document.createElement("div");
-      wrap.id = "cloudSyncToolbarInject";
-      wrap.className = "flex items-center gap-1";
-      wrap.innerHTML = `
-        <button onclick="pushFullToCloud()" title="Push all cards to Firebase Cloud" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #bae6fd;background:#f0f9ff;padding:6px 10px;font-size:11px;font-weight:700;color:#0369a1;cursor:pointer">
-          ☁️ Push
-        </button>
-        <button onclick="pullFromCloud()" title="Pull cards from Firebase Cloud" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #bbf7d0;background:#f0fdf4;padding:6px 10px;font-size:11px;font-weight:700;color:#15803d;cursor:pointer">
-          ⬇️ Pull
-        </button>
-        <button onclick="pushToGist()" title="Backup to GitHub Gist (works on GitHub Pages!)" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #e2e8f0;background:white;padding:6px 10px;font-size:10px;font-weight:700;color:#334155;cursor:pointer">
-          Gist ⬆️
-        </button>
-        <button onclick="pullFromGist()" title="Restore from GitHub Gist" style="display:inline-flex;align-items:center;gap:4px;border-radius:9999px;border:1px solid #e2e8f0;background:white;padding:6px 10px;font-size:10px;font-weight:700;color:#334155;cursor:pointer">
-          Gist ⬇️
-        </button>
-      `;
-      toolbar.insertBefore(wrap, toolbar.firstChild);
-    }
-  }, 900);
+
 
   // ================= END FIREBASE CLOUD SYNC =================
   </script>
