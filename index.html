@@ -1,46 +1,41 @@
-<function_calls>
-<invoke name="artifacts">
-<parameter name="command">create</parameter>
-<parameter name="id">media-flow-db-merged</parameter>
-<parameter name="type">text/html</parameter>
-<parameter name="title">Media Flow DB — Redesigned + Cloud Sync</parameter>
-<parameter name="content">
 <!DOCTYPE html>
-<html lang="en"> 
-<head> <meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Media Flow DB — Offline Edition</title>
 
 <!-- Firebase App (compat CDN) for cloud sync – works on GitHub Pages -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<style> 
-:root{ 
---bg:#f8fafc; --panel:#ffffff; --panel-soft:#f1f5f9; --text:#0f172a; --muted:#64748b; 
---border:#e2e8f0; --primary:#4f46e5; --primary-2:#6366f1; --danger:#e11d48; --success:#10b981; 
---warning:#f59e0b; --shadow:0 24px 80px rgba(15,23,42,.12); 
-} 
-html.dark{ 
---bg:#020617; --panel:#0f172a; --panel-soft:#1e293b; --text:#e2e8f0; --muted:#94a3b8; 
---border:#1e293b; --shadow:0 24px 80px rgba(0,0,0,.45); 
-} 
-*{box-sizing:border-box;} 
-body{ 
-margin:0; min-height:100vh; color:var(--text); 
-background: 
-radial-gradient(circle at top left, rgba(79,70,229,.16), transparent 32rem), 
-radial-gradient(circle at top right, rgba(14,165,233,.12), transparent 30rem), 
-var(--bg); 
-font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; 
-transition:background .25s ease,color .25s ease; 
-} 
-button,input,select,textarea{font:inherit;} 
-button{cursor:pointer;} 
-img{max-width:100%;display:block;} 
-.app-shell{width:min(1180px,calc(100% - 32px));margin:0 auto;} 
 
-/* Topbar */ 
+<style>
+  :root{
+    --bg:#f8fafc; --panel:#ffffff; --panel-soft:#f1f5f9; --text:#0f172a; --muted:#64748b;
+    --border:#e2e8f0; --primary:#4f46e5; --primary-2:#6366f1; --danger:#e11d48; --success:#10b981;
+    --warning:#f59e0b; --shadow:0 24px 80px rgba(15,23,42,.12);
+  }
+  html.dark{
+    --bg:#020617; --panel:#0f172a; --panel-soft:#1e293b; --text:#e2e8f0; --muted:#94a3b8;
+    --border:#1e293b; --shadow:0 24px 80px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(79,70,229,.16), transparent 32rem),
+      radial-gradient(circle at top right, rgba(14,165,233,.12), transparent 30rem),
+      var(--bg);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    transition:background .25s ease,color .25s ease;
+  }
+  button,input,select,textarea{font:inherit;}
+  button{cursor:pointer;}
+  img{max-width:100%;display:block;}
+  .app-shell{width:min(1180px,calc(100% - 32px));margin:0 auto;}
+
+  /* Topbar */ 
 .topbar{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border); background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);} 
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 0 14px;flex-wrap:wrap;} 
 .brand{display:flex;align-items:center;gap:12px;} 
@@ -64,7 +59,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
 .nav-pill{flex:0 0 auto;border:1px solid var(--border);border-radius:999px;background:var(--panel); color:var(--muted);padding:9px 16px;font-size:.82rem;font-weight:800;transition:all .18s ease;} 
 .nav-pill.active{border-color:transparent;background:var(--text);color:var(--bg);} 
 
-/* Page head */
+  /* Page head */
   .page-head{padding:26px 0 8px;}
   .page-head h2{margin:0 0 6px;font-size:clamp(1.6rem,3.4vw,2.4rem);letter-spacing:-0.04em;text-transform:capitalize;}
   .page-head .lead{margin:0 0 16px;max-width:760px;color:var(--muted);font-size:.92rem;line-height:1.6;}
@@ -76,7 +71,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   .search-box span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);}
   .status-text{margin:12px 0 0;color:var(--muted);font-size:.78rem;font-weight:600;}
 
-/* Carousel */
+  /* Carousel */
   .carousel-stack{display:flex;flex-direction:column;gap:36px;margin-top:22px;}
   .carousel-section{display:flex;flex-direction:column;gap:12px;}
   .carousel-head{display:flex;align-items:center;justify-content:space-between;}
@@ -92,7 +87,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   /* Grid */
   .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:22px;}
 
- /* Media card */
+  /* Media card */
   .media-card{overflow:hidden;border-radius:26px;border:1px solid var(--border);
     background:color-mix(in srgb,var(--panel) 94%,transparent);
     box-shadow:0 20px 60px rgba(15,23,42,.08);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;}
@@ -133,7 +128,7 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   .text-btn{border:0;border-radius:999px;background:rgba(79,70,229,.12);color:var(--primary-2);
     padding:9px 14px;font-size:.72rem;font-weight:900;}
 
-.empty{border:1px dashed var(--border);border-radius:28px;padding:42px;text-align:center;color:var(--muted);margin-top:22px;} 
+  .empty{border:1px dashed var(--border);border-radius:28px;padding:42px;text-align:center;color:var(--muted);margin-top:22px;}
 
   /* Overlay / Drawer / Modal */
   .overlay{position:fixed;inset:0;z-index:50;display:none;background:rgba(2,6,23,.6);backdrop-filter:blur(10px);}
@@ -203,31 +198,27 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
 </head>
 <body>
 
-<header class="topbar"> 
-<div class="app-shell"> 
-<div class="topbar-inner"> 
-<div class="brand"> 
-<div class="brand-badge">🎬</div> 
-<div> 
-<p class="eyebrow-mini">Media Tracker</p> 
-<h1>Media Flow DB</h1> 
-<p>Offline Single-File Edition • Store: localStorage <span id="cloudBadgeSlot"></span></p> 
-</div> 
-</div> 
-<div class="toolbar" id="mainToolbar"> 
+<header class="topbar">
+  <div class="app-shell">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">🎬</div>
+        <div>
+          <h1>Media Flow DB</h1>
+          <p>Offline Single-File Edition • Store: localStorage</p>
+        </div>
+      </div>
+      <div class="toolbar">
 <button class="btn cloud-push" id="cloudPushBtn" type="button" title="Push to Firebase Cloud">☁️ Push</button> 
 <button class="btn cloud-pull" id="cloudPullBtn" type="button" title="Pull from Firebase Cloud">⬇️ Pull</button> 
 <button class="btn" id="gistPushBtn" type="button" title="Backup to GitHub Gist">Gist ⬆</button> 
 <button class="btn" id="gistPullBtn" type="button" title="Restore from GitHub Gist">Gist ⬇</button> 
 <button class="btn" id="viewToggleBtn" type="button">Grid View</button> 
 <button class="btn" id="darkToggleBtn" type="button">Dark Mode</button> 
-<button class="btn danger" id="resetBtn" type="button">Reset Defaults</button> 
-<button class="btn primary" id="addCardBtn" type="button">+ Add Card</button> 
-</div> 
-</div> 
-<nav class="nav-scroll" id="categoryNav">
-</nav> 
-</div> 
+<button class="btn primary" id="addCardBtn" type="button">+ Add Card</button>       </div>
+    </div>
+    <nav class="nav-scroll" id="categoryNav"></nav>
+  </div>
 </header>
 
 <main class="app-shell">
@@ -252,19 +243,14 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   <div class="modal-card" id="modalContent"></div>
 </div>
 
-<script> 
-
-// ===== Constants ===== 
-const STORAGE_ITEMS_KEY = "media_flow_db_items_local"; 
-const STORAGE_LINKS_KEY = "media_flow_db_links_local"; 
-const STORAGE_DARK_KEY = "media_flow_db_dark_local"; 
-const STORAGE_VIEW_KEY = "media_flow_db_view_local"; 
+<script>
+// ===== Constants =====
+const STORAGE_ITEMS_KEY = "media_flow_db_items_local";
+const STORAGE_LINKS_KEY = "media_flow_db_links_local";
+const STORAGE_DARK_KEY = "media_flow_db_dark_local";
+const STORAGE_VIEW_KEY = "media_flow_db_view_local";
 const GITHUB_GIST_TOKEN_KEY = "media_flow_gist_token"; 
 const GITHUB_GIST_ID_KEY = "media_flow_gist_id"; 
-
-
-
-
 
 const navItems = [
   { label: "Overall", value: "overall" },
@@ -276,12 +262,10 @@ const navItems = [
   { label: "Books", value: "book" },
   { label: "Cartoons", value: "cartoon" },
 ];
-
 const categoryLabel = {
   manhwa:"MANHWA", anime:"ANIME", series:"SERIES", drama:"DRAMA", movie:"MOVIE", book:"BOOK", cartoon:"CARTOON",
 };
-
-const fallbackCover = "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80"; 
+const fallbackCover = "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80";
 
 const defaultSamples = [
   { _id:"sample-1", title:"Solo Leveling", category:"manhwa",
@@ -309,7 +293,6 @@ const defaultSamples = [
     createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
     progress:{ currentPage:215, totalPages:320 } },
 ];
-
 const defaultLinks = {
   "sample-1":{prequelIds:[],sequelIds:[]}, "sample-2":{prequelIds:[],sequelIds:[]},
   "sample-3":{prequelIds:[],sequelIds:[]}, "sample-4":{prequelIds:[],sequelIds:[]},
@@ -779,33 +762,32 @@ function buildDrawer(){
     </form>
   `;
 
+  qs("fTitle").value = formState.title;
+  qs("fCategory").value = formState.category;
+  qs("fCover").value = formState.coverImage;
+  qs("fDescription").value = formState.description;
+  qs("fGenres").value = formState.genres;
+  qs("fRating").value = formState.rating;
 
-qs("fTitle").value = formState.title;
-qs("fCategory").value = formState.category;
-qs("fCover").value = formState.coverImage;
-qs("fDescription").value = formState.description;
-qs("fGenres").value = formState.genres;
-qs("fRating").value = formState.rating;
+  // These listeners ONLY mutate formState — no re-render — so you can type freely.
+  qs("fTitle").addEventListener("input", e=>{ formState.title = e.target.value; });
+  qs("fCover").addEventListener("input", e=>{ formState.coverImage = e.target.value; });
+  qs("fDescription").addEventListener("input", e=>{ formState.description = e.target.value; });
+  qs("fGenres").addEventListener("input", e=>{ formState.genres = e.target.value; });
+  qs("fRating").addEventListener("input", e=>{ formState.rating = Number(e.target.value); });
 
-// These listeners ONLY mutate formState — no re-render — so you can type freely.
-qs("fTitle").addEventListener("input", e=>{ formState.title = e.target.value; });
-qs("fCover").addEventListener("input", e=>{ formState.coverImage = e.target.value; });
-qs("fDescription").addEventListener("input", e=>{ formState.description = e.target.value; });
-qs("fGenres").addEventListener("input", e=>{ formState.genres = e.target.value; });
-qs("fRating").addEventListener("input", e=>{ formState.rating = Number(e.target.value); });
+  qs("fCategory").addEventListener("change", e=>{
+    formState.category = e.target.value;
+    if(["anime","cartoon","series","drama"].includes(formState.category) && (!formState.seasons || formState.seasons.length===0)){
+      formState.seasons = makeSeasons(formState.totalSeasons);
+    }
+    renderConditionalFields();
+  });
 
-qs("fCategory").addEventListener("change", e=>{
-formState.category = e.target.value;
-if(["anime","cartoon","series","drama"].includes(formState.category) && (!formState.seasons || formState.seasons.length===0)){
-formState.seasons = makeSeasons(formState.totalSeasons);
-}
-renderConditionalFields();
-});
+  qs("mediaForm").addEventListener("submit", handleFormSubmit);
 
-qs("mediaForm").addEventListener("submit", handleFormSubmit);
-
-renderConditionalFields();
-renderRelationsSection();
+  renderConditionalFields();
+  renderRelationsSection();
 }
 
 function renderConditionalFields(){
@@ -873,8 +855,6 @@ function renderSeasonEditor(){
     });
   });
 }
-
-
 function renderRelationsSection(){
   const wrap = qs("relationsWrap");
   const mediaOptions = allMedia.map(i=>({id:i._id, title:i.title}));
@@ -925,81 +905,76 @@ function renderRelationsSection(){
       renderRelationsSection();
     });
   });
+}
 
 // ===== Submit / Save =====
-async function handleFormSubmit(e){
-e.preventDefault();
-if(!formState.title.trim()) return;
-const genresArray = formState.genres.split(",").map(g=>g.trim()).filter(Boolean);
-const cover = formState.coverImage.trim() || fallbackCover;
+function handleFormSubmit(e){
+  e.preventDefault();
+  if(!formState.title.trim()) return;
+  const genresArray = formState.genres.split(",").map(g=>g.trim()).filter(Boolean);
+  const cover = formState.coverImage.trim() || fallbackCover;
 
-let builtProgress = {};
-if(formState.category==="manhwa"){
-builtProgress = { currentChapter: clamp(formState.currentChapter,0,formState.totalChapters), totalChapters: Math.max(formState.totalChapters,1) };
-} else if(["anime","cartoon","series","drama"].includes(formState.category)){
-const totalSeasons = Math.max(formState.totalSeasons,1);
-const seasons = formState.seasons.slice(0,totalSeasons).map((s,i)=>({seasonNumber:i+1, totalEpisodes:Math.max(s.totalEpisodes,1)}));
-const currentSeason = clamp(formState.currentSeason,1,totalSeasons);
-const currentSeasonEps = seasons[currentSeason-1]?.totalEpisodes ?? 12;
-const totalEpisodes = seasons.reduce((sum,s)=>sum+s.totalEpisodes,0);
-builtProgress = { currentEpisode: clamp(formState.currentEpisode,0,currentSeasonEps), totalEpisodes, currentSeason, totalSeasons, seasons };
-} else if(formState.category==="book"){
-builtProgress = { currentPage: clamp(formState.currentPage,0,formState.totalPages), totalPages: Math.max(formState.totalPages,1) };
-} else {
-builtProgress = { watched: formState.watched, watchPercentage: clamp(formState.watchPercentage,0,100) };
-}
+  let builtProgress = {};
+  if(formState.category==="manhwa"){
+    builtProgress = { currentChapter: clamp(formState.currentChapter,0,formState.totalChapters), totalChapters: Math.max(formState.totalChapters,1) };
+  } else if(["anime","cartoon","series","drama"].includes(formState.category)){
+    const totalSeasons = Math.max(formState.totalSeasons,1);
+    const seasons = formState.seasons.slice(0,totalSeasons).map((s,i)=>({seasonNumber:i+1, totalEpisodes:Math.max(s.totalEpisodes,1)}));
+    const currentSeason = clamp(formState.currentSeason,1,totalSeasons);
+    const currentSeasonEps = seasons[currentSeason-1]?.totalEpisodes ?? 12;
+    const totalEpisodes = seasons.reduce((sum,s)=>sum+s.totalEpisodes,0);
+    builtProgress = { currentEpisode: clamp(formState.currentEpisode,0,currentSeasonEps), totalEpisodes, currentSeason, totalSeasons, seasons };
+  } else if(formState.category==="book"){
+    builtProgress = { currentPage: clamp(formState.currentPage,0,formState.totalPages), totalPages: Math.max(formState.totalPages,1) };
+  } else {
+    builtProgress = { watched: formState.watched, watchPercentage: clamp(formState.watchPercentage,0,100) };
+  }
 
-const payload = {
-title: formState.title.trim(), category: formState.category, coverImage: cover,
-description: formState.description.trim() || "No description yet.",
-genres: genresArray, rating: formState.rating, recommended: formState.rating>=8.5,
-progress: builtProgress, updatedAt: new Date().toISOString(),
-};
+  const payload = {
+    title: formState.title.trim(), category: formState.category, coverImage: cover,
+    description: formState.description.trim() || "No description yet.",
+    genres: genresArray, rating: formState.rating, recommended: formState.rating>=8.5,
+    progress: builtProgress, updatedAt: new Date().toISOString(),
+  };
 
-let savedId;
-if(editingId){
-savedId = editingId;
-allMedia = allMedia.map(m=> m._id===editingId ? {...m, ...payload} : m);
-saveLinksState(editingId, formState.prequelIds, formState.sequelIds);
-statusText = Updated media "${payload.title}";
-} else {
-savedId = media-${Date.now()};
-const newItem = { _id:savedId, ...payload, createdAt:new Date().toISOString() };
-allMedia = [newItem, ...allMedia];
-saveLinksState(savedId, formState.prequelIds, formState.sequelIds);
-statusText = Created media "${payload.title}";
-}
-saveItems();
-closeDrawer();
-renderResults();
-
-// Cloud sync mirror
-mirrorItemToCloud(savedId);
-tryPushGistBackup();
+  if(editingId){
+    allMedia = allMedia.map(m=> m._id===editingId ? {...m, ...payload} : m);
+    saveLinksState(editingId, formState.prequelIds, formState.sequelIds);
+    statusText = `Updated media "${payload.title}"`;
+  } else {
+    const newId = `media-${Date.now()}`;
+    const newItem = { _id:newId, ...payload, createdAt:new Date().toISOString() };
+    allMedia = [newItem, ...allMedia];
+    saveLinksState(newId, formState.prequelIds, formState.sequelIds);
+    statusText = `Created media "${payload.title}"`;
+  }
+  saveItems();
+  closeDrawer();
+  renderResults();
 }
 
 function saveLinksState(targetId, prequelIds, sequelIds){
-const next = {...links};
-const oldRel = links[targetId] || {prequelIds:[],sequelIds:[]};
-for(const pid of (oldRel.prequelIds||[])){
-if(next[pid]) next[pid] = {...next[pid], sequelIds:(next[pid].sequelIds||[]).filter(s=>s!==targetId)};
-}
-for(const sid of (oldRel.sequelIds||[])){
-if(next[sid]) next[sid] = {...next[sid], prequelIds:(next[sid].prequelIds||[]).filter(p=>p!==targetId)};
-}
-next[targetId] = {prequelIds, sequelIds};
-for(const pid of prequelIds){
-const existing = next[pid] || {prequelIds:[],sequelIds:[]};
-const sequels = new Set(existing.sequelIds||[]); sequels.add(targetId);
-next[pid] = {...existing, sequelIds:[...sequels]};
-}
-for(const sid of sequelIds){
-const existing = next[sid] || {prequelIds:[],sequelIds:[]};
-const prequels = new Set(existing.prequelIds||[]); prequels.add(targetId);
-next[sid] = {...existing, prequelIds:[...prequels]};
-}
-links = next;
-saveLinks();
+  const next = {...links};
+  const oldRel = links[targetId] || {prequelIds:[],sequelIds:[]};
+  for(const pid of (oldRel.prequelIds||[])){
+    if(next[pid]) next[pid] = {...next[pid], sequelIds:(next[pid].sequelIds||[]).filter(s=>s!==targetId)};
+  }
+  for(const sid of (oldRel.sequelIds||[])){
+    if(next[sid]) next[sid] = {...next[sid], prequelIds:(next[sid].prequelIds||[]).filter(p=>p!==targetId)};
+  }
+  next[targetId] = {prequelIds, sequelIds};
+  for(const pid of prequelIds){
+    const existing = next[pid] || {prequelIds:[],sequelIds:[]};
+    const sequels = new Set(existing.sequelIds||[]); sequels.add(targetId);
+    next[pid] = {...existing, sequelIds:[...sequels]};
+  }
+  for(const sid of sequelIds){
+    const existing = next[sid] || {prequelIds:[],sequelIds:[]};
+    const prequels = new Set(existing.prequelIds||[]); prequels.add(targetId);
+    next[sid] = {...existing, prequelIds:[...prequels]};
+  }
+  links = next;
+  saveLinks();
 }
 
 init();
@@ -1391,8 +1366,6 @@ init();
 
   // ================= END FIREBASE CLOUD SYNC =================
   </script>
+
 </body>
 </html>
-</parameter> 
-</invoke> 
-</function_calls>
