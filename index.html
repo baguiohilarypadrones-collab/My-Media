@@ -234,7 +234,19 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     padding:26px;background:var(--panel);box-shadow:var(--shadow);border-left:1px solid var(--border);}
   #modalOverlay{display:none;align-items:center;justify-content:center;padding:18px;}
   #modalOverlay.open{display:flex;}
-  #modalOverlay .modal-card{width:min(760px,100%);max-height:92vh;overflow:auto;border-radius:28px;
+ #modalOverlay .modal-card{
+    width:min(760px,95vw);
+    max-height:95vh;
+
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    border-radius:28px;
+    padding:24px;
+    background:var(--panel);
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+}
     padding:24px;background:var(--panel);box-shadow:var(--shadow);border:1px solid var(--border);}
   .modal-head{display:flex;justify-content:space-between;gap:16px;align-items:start;
     border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;}
