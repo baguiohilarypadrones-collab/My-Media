@@ -98,14 +98,33 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
 .nav-pill.active{border-color:transparent;background:var(--text);color:var(--bg);} 
 
   /* Page head */
-  .page-head{padding:26px 0 8px;}
+  .page-head{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:16px 0 18px;
+}
+
+.page-head .lead{
+    margin:0;
+}
+
+.search-box{
+    position:relative;
+    width:100%;
+    max-width:520px;
+    margin:0;
+}
+
+.status-text{
+    margin:0;
+}
   .page-head h2{margin:0 0 6px;font-size:clamp(1.6rem,3.4vw,2.4rem);letter-spacing:-0.04em;text-transform:capitalize;}
   .page-head .lead{margin:0 0 16px;max-width:760px;color:var(--muted);font-size:.92rem;line-height:1.6;}
-  .search-box{position:relative;max-width:520px;}
   .search-box input{width:100%;height:46px;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--text);outline:none;padding:0 20px 0 44px;box-shadow:0 12px 30px rgba(15,23,42,.05);}
   .search-box input:focus{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));}
   .search-box span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);}
-  .status-text{margin:12px 0 0;color:var(--muted);font-size:.78rem;font-weight:600;}
+  .status-text{margin:0px 0 0;color:var(--muted);font-size:.78rem;font-weight:600;}
 
   /* Carousel */
   .carousel-stack{display:flex;flex-direction:column;gap:36px;margin-top:22px;}
@@ -729,8 +748,7 @@ function renderModalContent(){
           ${sequels.length ? `<div class="linked-group"><span class="linked-label">Sequels (${sequels.length})</span>${sequels.map(renderLinkedRow).join("")}</div>` : ""}
         </div>` : ""}
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <button class="btn" type="button" onclick="handleCloseDetails(); setTimeout(()=>handleEdit('${item._id}'),100)">✎ Edit</button>
-          <button class="btn danger" type="button" onclick="handleCloseDetails(); setTimeout(()=>deleteCard('${item._id}'),200)">🗑 Delete</button>
+          <button class="btn" type="button" onclick="handleCloseDetails(); setTimeout(()=>handleEdit('${item._id}'),100)">✎</button>
           <button class="btn" type="button" onclick="handleCloseDetails()">Close</button>
         </div>
       </div>
@@ -789,7 +807,7 @@ function buildDrawer(){
     <div class="modal-head">
       <div><p class="eyebrow">Local card editor</p><h3>${editingId?"Edit Media":"Add Card"}</h3></div>
       <div class="modal-head-actions">
-        ${editingId ? `<button type="button" class="btn danger" onclick="deleteCard('${editingId}')">Delete</button>` : ""}
+        ${editingId ? `<button type="button" class="btn danger" onclick="deleteCard('${editingId}')">🗑 Delete</button>` : ""}
         <button type="button" class="close-btn" onclick="closeDrawer()">✕</button>
       </div>
     </div>
