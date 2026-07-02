@@ -400,9 +400,15 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
   }
 
   .progress-btn{
-    width:24px;
-    height:24px;
-  }
+        width:24px;
+        height:24px;
+        font-size:16px;
+        font-weight:900;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
 
 .progress-btn.wide{
     padding:0 8px;
@@ -532,6 +538,10 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     .detail-layout>img{
         height:320px;
         object-fit:contain;
+    }
+
+  .progress-row{
+        gap:2px;
     }
   
 }
@@ -949,7 +959,16 @@ function handlePatchProgress(id, updates){
   renderResults();
 }
 function deleteCard(id){
-  if(!confirm("Are you sure you want to delete this media card?")) return;
+  const item = allMedia.find(m => m._id === id);
+
+  if(
+    !confirm(
+      `⚠️ WARNING\n\n` +
+      `Are you sure you want to delete "${item?.title || "this media card"}"?\n\n` +
+      `This action cannot be undone.`
+    )
+  ) return;
+
   const next = {...links};
   delete next[id];
   Object.keys(next).forEach(key=>{
@@ -958,11 +977,19 @@ function deleteCard(id){
       sequelIds:(next[key].sequelIds||[]).filter(x=>x!==id),
     };
   });
-  links = next; saveLinks();
+  links = next;
+  saveLinks();
+
   allMedia = allMedia.filter(m=>m._id!==id);
   saveItems();
+
   if(addOpen && editingId===id) closeDrawer();
-  if(selectedMedia && selectedMedia._id===id){ selectedMedia=null; renderModalContent(); }
+
+  if(selectedMedia && selectedMedia._id===id){
+    selectedMedia = null;
+    renderModalContent();
+  }
+
   statusText = "Deleted media card";
   renderResults();
 }
@@ -1220,8 +1247,22 @@ function renderSeasonEditor(){
 function renderRelationsSection(){
   const wrap = qs("relationsWrap");
   const mediaOptions = allMedia.map(i=>({id:i._id, title:i.title}));
-  const prequelOptions = mediaOptions.filter(o=> o.id!==editingId && !formState.sequelIds.includes(o.id) && !formState.prequelIds.includes(o.id));
-  const sequelOptions = mediaOptions.filter(o=> o.id!==editingId && !formState.prequelIds.includes(o.id) && !formState.sequelIds.includes(o.id));
+  const prequelOptions = mediaOptions
+  .filter(o =>
+    o.id !== editingId &&
+    !formState.sequelIds.includes(o.id) &&
+    !formState.prequelIds.includes(o.id)
+  )
+  .sort((a, b) => a.title.localeCompare(b.title));
+
+const sequelOptions = mediaOptions
+  .filter(o =>
+    o.id !== editingId &&
+    !formState.prequelIds.includes(o.id) &&
+    !formState.sequelIds.includes(o.id)
+  )
+  .sort((a, b) => a.title.localeCompare(b.title));
+  
   wrap.innerHTML = `
     <div class="relations-block">
       <label class="relation-label" style="font-size:.78rem;font-weight:900;">Wiki Graph Links</label>
