@@ -664,6 +664,12 @@ function deleteCard(id){
   });
   links = next; saveLinks();
   allMedia = allMedia.filter(m=>m._id!==id); saveItems();
+  
+  // Also delete from Firestore so it doesn't come back on refresh
+  if (typeof cloudEnabled !== "undefined" && cloudEnabled && fbDb) {
+    fbDb.collection("media_items").doc(id).delete().catch(() => {});
+  }
+  
   if(addOpen && editingId===id) closeDrawer();
   if(selectedMedia && selectedMedia._id===id){ selectedMedia = null; renderModalContent(); }
   statusText = "Deleted media card";
