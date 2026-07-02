@@ -1204,6 +1204,7 @@ function buildDrawer(){
   .join("");
 
 qs("fStatus").value = formState.status;
+console.log("Edit status:", formState.status, qs("fStatus").value);
 
 qs("fStatus").addEventListener("change", e=>{
   formState.status = e.target.value;
