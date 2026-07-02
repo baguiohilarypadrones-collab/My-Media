@@ -818,7 +818,7 @@ function progressPercent(item){
     const total=p.totalPages||0;
     return total? clamp(Math.round(((p.currentPage||0)/total)*100),0,100):0;
   }
-  return p.watched?100:clamp(p.watchPercentage||0,0,100);
+  return clamp(p.watchPercentage || 0, 0, 100);
 }
 function getItemLinks(id){
   const rel=links[id];
@@ -968,12 +968,11 @@ function renderProgressControls(item){
       <button class="progress-btn" type="button" onclick="handlePatchProgress('${item._id}', {currentPage: clamp(${page+1},0,${total})})">+</button>
     </div>`;
   }
-  const watched=p.watched??false, pct=p.watchPercentage??0;
+ const pct = p.watchPercentage ?? 0;
   return `<div class="progress-controls">
     <button class="progress-btn wide" type="button" onclick="handlePatchProgress('${item._id}', {watchPercentage: clamp(${pct-5},0,100), watched:false})">−5%</button>
     <span class="progress-value">${pct}%</span>
     <button class="progress-btn wide" type="button" onclick="handlePatchProgress('${item._id}', {watchPercentage: clamp(${pct+5},0,100), watched: ${pct+5>=100}})">+5%</button>
-    <button class="chip-toggle ${watched?"active":""}" type="button" onclick="handlePatchProgress('${item._id}', {watched: ${!watched}, watchPercentage: ${!watched?100:pct}})">${watched?"Watched":"Mark Watched"}</button>
   </div>`;
 }
 
@@ -1271,12 +1270,12 @@ function renderConditionalFields(){
     qs("fTotalPages").addEventListener("input", e=>{ formState.totalPages = Number(e.target.value); });
   } else {
     wrap.innerHTML = `
-      <div class="field"><label>Watch Percentage</label><input id="fWatchPct" type="number" min="0" max="100" /></div>
-      <div class="field checkbox-field"><label><input id="fWatched" type="checkbox" /> Watched</label></div>`;
+  <div class="field">
+    <label>Watch Percentage</label>
+    <input id="fWatchPct" type="number" min="0" max="100" />
+  </div>`;
     qs("fWatchPct").value = formState.watchPercentage;
-    qs("fWatched").checked = formState.watched;
     qs("fWatchPct").addEventListener("input", e=>{ formState.watchPercentage = Number(e.target.value); });
-    qs("fWatched").addEventListener("change", e=>{ formState.watched = e.target.checked; });
   }
 }
 function renderSeasonEditor(){
@@ -1381,7 +1380,9 @@ function handleFormSubmit(e){
   } else if(formState.category==="book"){
     builtProgress = { currentPage: clamp(formState.currentPage,0,formState.totalPages), totalPages: Math.max(formState.totalPages,1) };
   } else {
-    builtProgress = { watched: formState.watched, watchPercentage: clamp(formState.watchPercentage,0,100) };
+    builtProgress = {
+  watchPercentage: clamp(formState.watchPercentage,0,100)
+};
   }
 
   const payload = {
