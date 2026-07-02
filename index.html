@@ -191,6 +191,18 @@ html.dark .btn.cloud-pull{background:rgba(21,128,61,.15);color:#86efac;border-co
     font-size:.65rem;font-weight:900;backdrop-filter:blur(12px);letter-spacing:.04em;text-transform:uppercase;}
   .badge{left:12px;background:rgba(15,23,42,.72);}
   .rating-badge{right:12px;background:rgba(245,158,11,.94);text-transform:none;}
+
+.status-badge{
+  display:inline-block;
+  margin:8px 0;
+  padding:5px 10px;
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:var(--primary);
+  font-size:.72rem;
+  font-weight:800;
+}
+  
   .card-body{padding:16px;}
   .card-title{margin:0;font-size:1rem;font-weight:900;letter-spacing:-0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .description{min-height:40px;margin:9px 0 0;color:var(--muted);font-size:.82rem;line-height:1.45;
@@ -669,6 +681,23 @@ const navItems = [
 const categoryLabel = {
   manhwa:"MANHWA", anime:"ANIME", series:"SERIES", drama:"DRAMA", movie:"MOVIE", book:"BOOK", cartoon:"CARTOON",
 };
+
+const MEDIA_STATUSES = [
+  "Watching",
+  "Reading",
+  "Completed",
+  "Paused",
+  "On Hold",
+  "Ongoing",
+  "Upcoming",
+  "Hiatus",
+  "Dropped",
+  "Cancelled",
+  "Stopped",
+  "Plan to Watch",
+  "Plan to Read"
+];
+  
 const fallbackCover = "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80";
 
 const defaultSamples = [
@@ -715,7 +744,7 @@ let selectedMedia = null;
 let statusText = "Ready";
 
 let formState = {
-  title:"", category:"manhwa", coverImage:"", description:"", genres:"", rating:8,
+  title:"", category:"manhwa", coverImage:"", description:"", genres:"", rating:8, status:"Ongoing",
   currentChapter:1, totalChapters:100, currentEpisode:1, currentSeason:1, totalSeasons:1,
   seasons:[{seasonNumber:1,totalEpisodes:12}], currentPage:1, totalPages:300,
   watched:false, watchPercentage:0, prequelIds:[], sequelIds:[],
@@ -890,6 +919,9 @@ function renderMediaCard(item){
       <h3 class="card-title" title="${escapeAttr(item.title)}">${escapeHtml(item.title)}</h3>
       <p class="description">${escapeHtml(item.description||"No description provided.")}</p>
       <div class="genres">${genresHtml}</div>
+      <p class="status-badge">
+  ${escapeHtml(item.status || "Ongoing")}
+</p>
       <div class="progress-line"><span>${escapeHtml(formatProgress(item))}</span><span>${percent}%</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
       <p class="totals-text">${escapeHtml(totalsSummary(item))}</p>
@@ -1034,6 +1066,10 @@ function renderModalContent(){
         <div class="detail-box"><strong>Totals:</strong> ${escapeHtml(totalsSummary(item))}</div>
         <div class="detail-box"><strong>Category:</strong> ${categoryLabel[item.category]}</div>
         <div class="detail-box"><strong>Rating:</strong> ★ ${item.rating}</div>
+        <div class="detail-box">
+  <strong>Status:</strong>
+  ${escapeHtml(item.status || "Ongoing")}
+</div>
         <div class="detail-box"><strong>Genres:</strong> ${escapeHtml(item.genres.join(", ")||"None")}</div>
         ${hasSeasons && p.seasons?.length ? `
         <div class="detail-box season-breakdown">
@@ -1060,7 +1096,7 @@ function renderModalContent(){
 function triggerAddOpen(){
   editingId = null;
   formState = {
-    title:"", category:"manhwa", coverImage:"", description:"", genres:"", rating:8,
+    title:"", category:"manhwa", coverImage:"", description:"", genres:"", rating:8, status:"Ongoing",
     currentChapter:1, totalChapters:100, currentEpisode:1, currentSeason:1, totalSeasons:1,
     seasons:makeSeasons(1), currentPage:1, totalPages:300, watched:false, watchPercentage:0,
     prequelIds:[], sequelIds:[],
@@ -1080,7 +1116,7 @@ function handleEdit(id){
   editingId = id;
   formState = {
     title:item.title, category:item.category, coverImage:item.coverImage, description:item.description,
-    genres:item.genres.join(", "), rating:item.rating,
+    genres:item.genres.join(", "), rating:item.rating, status:item.status || "Ongoing",
     currentChapter:item.progress.currentChapter||1, totalChapters:item.progress.totalChapters||100,
     currentEpisode:item.progress.currentEpisode||1, currentSeason:item.progress.currentSeason||1,
     totalSeasons, seasons,
@@ -1144,6 +1180,10 @@ function buildDrawer(){
         <label>Rating</label>
         <input id="fRating" type="number" min="0" max="10" step="0.1" />
       </div>
+      <div class="field">
+  <label>Status</label>
+  <select id="fStatus"></select>
+</div>
       <div id="conditionalFieldsWrap"></div>
       <div id="relationsWrap"></div>
       <div class="form-actions">
@@ -1158,6 +1198,15 @@ function buildDrawer(){
   qs("fDescription").value = formState.description;
   qs("fGenres").value = formState.genres;
   qs("fRating").value = formState.rating;
+  qs("fStatus").innerHTML = MEDIA_STATUSES
+  .map(status => `<option value="${status}">${status}</option>`)
+  .join("");
+
+qs("fStatus").value = formState.status;
+
+qs("fStatus").addEventListener("change", e=>{
+  formState.status = e.target.value;
+});
 
   qs("fTitle").addEventListener("input", e=>{ formState.title = e.target.value; });
   qs("fCover").addEventListener("input", e=>{ formState.coverImage = e.target.value; });
@@ -1336,7 +1385,7 @@ function handleFormSubmit(e){
   const payload = {
     title: formState.title.trim(), category: formState.category, coverImage: cover,
     description: formState.description.trim() || "No description yet.",
-    genres: genresArray, rating: formState.rating, recommended: formState.rating>=8.5,
+    genres: genresArray, rating: formState.rating, status: formState.status, recommended: formState.rating>=8.5,
     progress: builtProgress, updatedAt: new Date().toISOString(),
   };
 
