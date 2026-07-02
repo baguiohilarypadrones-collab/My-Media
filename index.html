@@ -1446,6 +1446,13 @@ function init(){
   if(savedItems){ allMedia = safeParse(savedItems, [...defaultSamples]); }
   else { allMedia = [...defaultSamples]; saveItems(); }
 
+  allMedia = allMedia.map(item => ({
+  status: "Ongoing",
+  ...item
+}));
+
+saveItems();
+
   const savedLinks = localStorage.getItem(STORAGE_LINKS_KEY);
   if(savedLinks){ links = safeParse(savedLinks, {...defaultLinks}); }
   else { links = {...defaultLinks}; saveLinks(); }
